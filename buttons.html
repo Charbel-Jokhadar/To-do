@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Todo list</title>
+    <link rel="stylesheet" href="newjava.css">
+  </head>
+  <body>
+    <p>Todo List</p>
+    <div class="input-group">
+    <input placeholder="Todo Name"
+    class="js-name-input">
+    
+    <input placeholder="Enter the date"
+    class="js-date-input">
+    <button onclick="chooseDate()">CHOOSE DATE</button>
+     <button onclick="
+    addTodo();
+    ">ADD</button>
+      <button onclick="loadTodos()">LOAD TODOS</button>
+    </div>
+    <div>
+    <input placeholder="Search for Todo"
+    class="js-search-input">
+    <button class="search-button" onclick="
+    ResetTodo();
+    ">RESET</button>
+   </div>
+
+   <div>
+    <input placeholder="Search for Date"
+    class="js-searchdate-input">
+    <button class="search-button" onclick="
+    ResetDate();
+    ">RESET</button>
+   </div>
+
+    <div class="js-todo-list "></div>
+
+
+    <script src="newjava.js"></script>
+  </body>
+</html>
