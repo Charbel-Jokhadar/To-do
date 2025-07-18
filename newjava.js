@@ -1,13 +1,16 @@
 const todoList = [];
 const AtodoList=[];
 const DtodoList=[];
-
+let recentlyDeleted=null;
+let undoTimeout=null;
+let temparr=null;
 function addTodo(){
   const nameinput =document.querySelector(`.js-name-input`);
   const dateinput=document.querySelector(`.js-date-input`);
+  const descriptioninput=document.querySelector(`.js-description-input`);
   let name= nameinput.value;
   let date= dateinput.value;
-
+  let description= descriptioninput.value;
   if(name===``|| date===``){
     alert(`YOU MUST FILL ALL INPUT`)
     return;
@@ -63,12 +66,15 @@ function addTodo(){
     return;
   }
 
-  todoList.push({name:name,
+  todoList.push({
+  name:name,
   done:false,
-  date:date
+  date:date,
+  description:description
   });
  nameinput.value = ``;
  dateinput.value = ``;
+ descriptioninput.value=``;
   add();
 }
 
@@ -99,7 +105,7 @@ function add(){
     
   
     let html = `
-       <p class="todo-item" data-name="${todo.name.toLowerCase()}" style="${color}">
+       <p class="todo-item" title="Double-click to view description" data-index="${i}" data-name="${todo.name.toLowerCase()}" style="${color}">
       ${todo.name}
       ${checkBox}
       ${todo.date}
@@ -140,6 +146,10 @@ const items = document.querySelectorAll('.todo-item');
     item.addEventListener('mouseout', function() {
       item.style.backgroundColor = originalColor;
     });
+    item.addEventListener('dblclick',function(){
+      const i = item.getAttribute('data-index');
+    description(i);
+    })
 });
 }
 
@@ -191,15 +201,97 @@ add();
 
 
 function removeTodo(i) {
+  recentlyDeleted={
+    todo: todoList[i],
+    index: i
+  };
   todoList.splice(i, 1);
   add();
+  ShowUndo();
+  if (undoTimeout !== null && undoTimeout !== undefined){
+    clearTimeout(undoTimeout);
+  }
+    undoTimeout = setTimeout(() => {
+    recentlyDeleted = null;
+    removeUndoBanner();
+  }, 5000);
+}
+
+function ShowUndo(){
+  removeUndoBanner();
+  const banner = document.createElement(`div`);
+  banner.className=`undo-banner`;
+  banner.innerHTML=`
+  Todo deleted.
+  <button onclick="undoDelete()">Undo</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+function undoDelete() {
+  if (recentlyDeleted !== null && recentlyDeleted !== undefined) {
+    const { todo, index } = recentlyDeleted;
+    todoList.splice(index, 0, todo); 
+    recentlyDeleted = null;
+    add();
+    removeUndoBanner();
+
+    if (undoTimeout !== null && undoTimeout !== undefined) {
+      clearTimeout(undoTimeout);
+      undoTimeout = null;
+    }
+  }
+}
+
+function removeUndoBanner() {
+  const banner = document.querySelector('.undo-banner');
+  if (banner !== null && banner !== undefined) {
+    banner.remove();
+  }
 }
 
 
+
 function delall() {
+  
+   temparr = [...todoList];
+
   const c = todoList.length;
   todoList.splice(0, c);
   add();
+   ShowUndoBanner();
+    if (undoTimeout !== null && undoTimeout !== undefined){
+    clearTimeout(undoTimeout);
+  }
+    undoTimeout = setTimeout(() => {
+    temparr = null;
+    removeUndoBanner();
+  }, 5000);
+}
+
+function ShowUndoBanner(){
+  removeUndoBanner();
+  const banner = document.createElement(`div`);
+  banner.className=`undo-banner`;
+  banner.innerHTML=`
+  Todo deleted.
+  <button onclick="undoDeleted()">Undo</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+function undoDeleted(){
+  if (temparr !== null && temparr !== undefined) {
+    temparr.forEach(todo => todoList.push(todo));
+    temparr=null;
+    add();
+    removeUndoBanner();
+
+    if (undoTimeout !== null && undoTimeout !== undefined) {
+      clearTimeout(undoTimeout);
+      undoTimeout = null;
+    }
+  }
 }
 
 
@@ -222,6 +314,13 @@ document.querySelector('.js-date-input').addEventListener('keydown', function(ev
     addTodo();
   }
 });
+
+document.querySelector('.js-description-input').addEventListener('keydown',function(event){
+  if(event.key === 'Enter'){
+    addTodo();
+  }
+})
+
 document.querySelector('.js-search-input').addEventListener('keydown', function(event) {
   if (event.key === 'Enter') {
     Search();
@@ -673,5 +772,67 @@ function loadTodos() {
 function clearSavedTodos() {
   localStorage.removeItem('todoList');
   alert("✅ Saved todos cleared.");
+}
+
+function description(i) {
+
+  const overlay = document.createElement('div');
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100%';
+  overlay.style.height = '100%';
+  overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+  overlay.style.display = 'flex';
+  overlay.style.justifyContent = 'center';
+  overlay.style.alignItems = 'center';
+  overlay.style.zIndex = '1000';
+
+  const popup = document.createElement('div');
+  popup.style.backgroundColor = '#fff';
+  popup.style.padding = '20px';
+  popup.style.borderRadius = '10px';
+  popup.style.width = '300px';
+  popup.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+  popup.style.textAlign = 'center';
+
+  const title = document.createElement('h3');
+  title.textContent = 'Description';
+  title.style.color = '#8e44ad';
+  popup.appendChild(title);
+
+  const d = document.createElement('p');
+  const description = todoList[i].description;
+
+  if (!description || description === '') {
+    d.textContent = 'No description available.';
+  } else {
+    d.textContent = description;
+  }
+
+  d.style.color = '#555';
+  popup.appendChild(d);
+
+  const change = document.createElement('button');
+  change.textContent = 'Change Description';
+  change.style.marginTop = '10px';
+  change.onclick = function() {
+    let f= prompt('Enter the new description');
+    if (f!== null && f!== ``){
+   todoList[i].description=f ;
+   d.textContent=f;
+   }
+  };
+popup.appendChild(change);
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = 'OK';
+  closeBtn.style.marginTop = '10px';
+  closeBtn.onclick = function() {
+    overlay.remove();
+  };
+  popup.appendChild(closeBtn);
+
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
 }
 

@@ -137,3 +137,41 @@ button:hover {
    
   }
 }
+
+.js-description-input{
+ width: 25%;
+  padding: 10px;
+  margin: 0;
+  margin-right: 300px;
+  margin-bottom: 15px;
+  padding: 15px;
+}
+
+.undo-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #323232;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 4px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  z-index: 2000;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.undo-banner button {
+  background-color: #8e44ad;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.undo-banner button:hover {
+  background-color: #732d91;
+}
