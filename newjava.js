@@ -76,6 +76,7 @@ function addTodo(){
  dateinput.value = ``;
  descriptioninput.value=``;
   add();
+  saveTodos();
 }
 
 
@@ -89,15 +90,16 @@ function add(){
    let checkBox = todo.done;
 
     if (checkBox === true) {
-      checkBox = `<input class="press" type="checkbox" checked enabled>`;
-      c = 1;
-    } else {
-      checkBox = `<input class="press" type="checkbox" disabled>`;
-      c = 0;
-    }
+  checkBox = `<input class="press" type="checkbox" checked onclick="Done(${i})">`;
+  c = 1;
+} else {
+  checkBox = `<input class="press" type="checkbox" onclick="Done(${i})">`;
+  c = 0;
+}
+
     let color=``;
     if (c === 1) {
-      color='background-color: lightgreen;';
+      color='background-color: #2e8fd0ff;';
       p = `UNDO`;
     } else {
       p = `DONE`;
@@ -120,8 +122,7 @@ function add(){
     let html = `<button class="dela" onclick="delall()">DELETE ALL</button>
     <button class="alldone" onclick="showdone()">DONE TODO</button>
     <button class="DeleteDoneTodo" onclick="Deletedonetodo()">REMOVE DONE</button>
-    <button onclick="saveTodos()">SAVE TODOS</button>
-    <button onclick="clearSavedTodos()">CLEAR SAVED TODOS</button>`;
+    <button class="clear-btn" onclick="clearSavedTodos()">CLEAR SAVED TODOS</button>`;
     todoListHTML += html;
   }
 
@@ -142,15 +143,18 @@ const items = document.querySelectorAll('.todo-item');
 
     item.addEventListener('mouseover', function() {
       item.style.backgroundColor = `#f0f0f0`;
+      showHoverPopup(item);
     });
     item.addEventListener('mouseout', function() {
       item.style.backgroundColor = originalColor;
+      removeHoverPopup();
     });
     item.addEventListener('dblclick',function(){
       const i = item.getAttribute('data-index');
     description(i);
     })
 });
+saveTodos();
 }
 
 function ASort() {
@@ -174,6 +178,7 @@ function ASort() {
   AtodoList.forEach(item => todoList.push(item));
 
   add(); 
+  saveTodos();
 }
 
 function DSort(){
@@ -197,6 +202,7 @@ while(templist.length > 0){
 todoList.length=0;
 DtodoList.forEach(item => todoList.push(item));
 add();
+saveTodos();
 }
 
 
@@ -215,6 +221,7 @@ function removeTodo(i) {
     recentlyDeleted = null;
     removeUndoBanner();
   }, 5000);
+  saveTodos();
 }
 
 function ShowUndo(){
@@ -241,6 +248,7 @@ function undoDelete() {
       undoTimeout = null;
     }
   }
+  saveTodos();
 }
 
 function removeUndoBanner() {
@@ -278,6 +286,7 @@ function ShowUndoBanner(){
   <button onclick="undoDeleted()">Undo</button>
   `;
   document.body.appendChild(banner);
+  saveTodos();
 }
 
 function undoDeleted(){
@@ -292,6 +301,7 @@ function undoDeleted(){
       undoTimeout = null;
     }
   }
+  saveTodos();
 }
 
 
@@ -300,6 +310,7 @@ function duplicate(i) {
   for (let j = 0; j < c; j++) {
   todoList.push({ name: todoList[i].name, done: false, date: todoList[i].date });
   add();
+  saveTodos();
 }}
 
 
@@ -338,6 +349,7 @@ function Done(i) {
     todoList[i].done = false;
   }
   add();
+  saveTodos();
 }
 
 
@@ -356,6 +368,7 @@ const namePattern = /^[A-Za-z\s]+$/;
     todoList[i].name = newName;
     add();
   }
+  saveTodos();
 }
 
 
@@ -481,6 +494,7 @@ const datePattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
   }
   todoList[i].date = period;
   add();
+  saveTodos();
 }
 
 
@@ -651,7 +665,7 @@ function showdone() {
 
   const title = document.createElement('h3');
   title.textContent = 'Done Todos';
-  title.style.color = '#8e44ad';
+  title.style.color = '#3669d5ff';
   popup.appendChild(title);
 
   let hasDone = false;
@@ -741,10 +755,9 @@ popup.style.textAlign = 'center';
 function saveTodos() {
   try {
     localStorage.setItem('todoList', JSON.stringify(todoList));
-    alert("✅ Todos saved successfully!");
   } catch (e) {
     console.error("Save failed:", e);
-    alert("❌ Failed to save todos.");
+    alert(" Failed to save todos.");
   }
 }
 
@@ -756,22 +769,19 @@ function loadTodos() {
       if (Array.isArray(parsed)) {
         parsed.forEach(todo => todoList.push(todo));
         add();
-        alert("✅ Todos loaded successfully!");
       } else {
-        alert("❌ Saved data is corrupted.");
+        alert(" Saved data is corrupted.");
       }
-    } else {
-      alert("⚠️ No saved todos found.");
     }
   } catch (e) {
     console.error("Load failed:", e);
-    alert("❌ Failed to load todos.");
+    alert(" Failed to load todos.");
   }
 }
 
 function clearSavedTodos() {
   localStorage.removeItem('todoList');
-  alert("✅ Saved todos cleared.");
+  alert(" Saved todos cleared.");
 }
 
 function description(i) {
@@ -798,7 +808,7 @@ function description(i) {
 
   const title = document.createElement('h3');
   title.textContent = 'Description';
-  title.style.color = '#8e44ad';
+  title.style.color = '#3669d5ff';
   popup.appendChild(title);
 
   const d = document.createElement('p');
@@ -821,6 +831,7 @@ function description(i) {
     if (f!== null && f!== ``){
    todoList[i].description=f ;
    d.textContent=f;
+   saveTodos();
    }
   };
 popup.appendChild(change);
@@ -836,3 +847,34 @@ popup.appendChild(change);
   document.body.appendChild(overlay);
 }
 
+window.onload = function() {
+  loadTodos();
+};
+
+
+function showHoverPopup(targetItem) {
+  const popup = document.createElement('div');
+  popup.className = 'hover-popup';
+  popup.textContent = 'Double-click to see description';
+  popup.style.position = 'absolute';
+  popup.style.backgroundColor = 'black';
+  popup.style.color = 'white';
+  popup.style.padding = '5px 10px';
+  popup.style.borderRadius = '5px';
+  popup.style.fontSize = '12px';
+  popup.style.zIndex = '1000';
+
+
+  const rect = targetItem.getBoundingClientRect();
+  popup.style.top = `${rect.top - 30 + window.scrollY}px`; 
+  popup.style.left = `${rect.left + window.scrollX}px`; 
+
+  document.body.appendChild(popup);
+}
+
+function removeHoverPopup() {
+  const existing = document.querySelector('.hover-popup');
+  if (existing !== null) {
+    existing.remove();
+  }
+}
